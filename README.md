@@ -10,7 +10,7 @@ With the dll in the mod folder, with GMCM, make sure "Insert SMAPI" is selected.
 Any entries added via "EditData" with Content Patcher should now be recognized by the game under specific circumstances:
 - the prefixes must match the ones the game uses (ex: outdoor dialogue should begin with "Outdoor_" and spouse room dialogue should begin with "spouseRoom_"
 - dialogue in MarriageDialogues.xnb should either be NAME or DATE specific. This is to prevent dialogue for different characters from showing up
-- MarriageDialogue<name>.xnb can have all the dialogues you want as long as they are prefixed properly for the game
+- MarriageDialogue[name].xnb can have all the dialogues you want as long as they are prefixed properly for the game
 
 ## Releases
 Releases will be on nexusmods.com (full link available when I'm done with the first working commit).
