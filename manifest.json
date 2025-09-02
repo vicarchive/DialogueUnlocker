@@ -1,0 +1,10 @@
+{
+    "Name": "Dialogue Unlocker",
+    "Author": "vicarchive",
+    "Version": "1.0.1", /* spouseRoom works */
+    "Description": "Unlocks limits on marriage dialogues.",
+    "UniqueID": "vicarchive.DialogueUnlocker",
+    "EntryDll": "MarriageDialogueUnlocker.dll",
+    "MinimumAPIVersion": "4.0.0",
+    "UpdateKeys": []
+}
