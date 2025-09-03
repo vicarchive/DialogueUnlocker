@@ -20,12 +20,11 @@ namespace MarriageDialogueUnlocker;
 internal class ModEntry : Mod
 
 {
-    private static IMonitor YOOO;
-
-    // call this method from your Entry class
+    private static IMonitor EntryMonitor;
     internal static void Initialize(IMonitor monitor)
     {
-        YOOO = monitor;
+        // Initialize a monitor
+        EntryMonitor = monitor;
     }
     /// <summary>The mod entry point, called after the mod is first loaded.</summary>
     /// <param name="helper">Provides simplified APIs for writing mods.</param>
@@ -33,117 +32,76 @@ internal class ModEntry : Mod
     {
         Harmony harmony = new(ModManifest.UniqueID);
         Initialize(Monitor);
-        YOOO.Log($"patches started!");
-        // PREFIXES
+
+        EntryMonitor.Log("Dialogue patch started!");
         harmony.Patch(
-            original: AccessTools.Method(typeof(NPC), nameof(NPC.setRandomAfternoonMarriageDialogue)),
-            prefix: new HarmonyMethod(typeof(ModEntry), nameof(setRandomAfternoonMarriageDialogue_prefix))
+            original: AccessTools.Method(typeof(NPC), nameof(NPC.addMarriageDialogue)),
+            prefix: new HarmonyMethod(typeof(ModEntry), nameof(addMarriageDialogue_prefix))
         );
-        harmony.Patch(
-            original: AccessTools.Method(typeof(NPC), nameof(NPC.setSpouseRoomMarriageDialogue)),
-            prefix: new HarmonyMethod(typeof(ModEntry), nameof(setSpouseRoomMarriageDialogue_prefix))
-        );
-        YOOO.Log("patches done! <3");
-        /*
-         * NEXT ITERATION
-         * 
-        harmony.Patch(
-            original: AccessTools.Method(typeof(StardewValley.NPC), nameof(NPC.marriageDuties)),
-            transpiler: new HarmonyMethod(typeof(ModEntry), nameof(ModEntry.MarriageDuties_Transpile))
-        );
-        */
+        EntryMonitor.Log("Dialogue patch done!");
     }
 
-    public static bool setRandomAfternoonMarriageDialogue_prefix(NPC __instance, ref NetBool ___hasSaidAfternoonDialogue, int time, GameLocation location, bool countAsDailyAfternoon = false)
+    public static void addMarriageDialogue_prefix(NPC __instance, string dialogue_file, string dialogue_key, bool gendered = false, params string[] substitutions)
     {
-        YOOO.Log($"setting dialogue!!");
-        try
+        Random dialogueRandom = Utility.CreateDaySaveRandom(Game1.timeOfDay);
+
+        switch (dialogue_file)
         {
-            if (__instance.Name == "Krobus" && Game1.shortDayNameFromDayOfSeason(Game1.dayOfMonth) == "Fri" || ___hasSaidAfternoonDialogue.Value)
-                return true;
-            if (countAsDailyAfternoon)
-                ___hasSaidAfternoonDialogue.Value = true;
-            Random daySaveRandom = Utility.CreateDaySaveRandom((double)time);
-            int heartLevelForNpc = __instance.getSpouse().getFriendshipHeartLevelForNPC(__instance.Name);
-            switch (location)
-            {
-                case FarmHouse _:
-                    if (!daySaveRandom.NextBool())
-                        break;
-                    if (heartLevelForNpc < 9)
+            case "MarriageDialogue":
+                EntryMonitor.Log("MarriageDialogue detected!");
+
+                // Instantiation
+                bool nameToggleBool = dialogue_key.Contains(__instance.Name);
+                string startsKey = "";
+                List<string> acceptableKeys = new List<string>{ "Rainy_Night", "Rainy_Day", "Indoor_Night", "Indoor_Day", "Outdoor", "Good", "Neutral", "Bad", "OneKid", "TwoKids", $"{Game1.currentSeason}", "spouseRoom", "funLeave", "jobLeave", "funReturn", "jobReturn", "patio"};
+
+                // Match with one of the accepted keys above
+                bool found = false;
+                int i = 0;
+                while (!found && i < acceptableKeys.Count)
+                {
+                    if (dialogue_key.StartsWith(acceptableKeys[i]))
                     {
-                        __instance.currentMarriageDialogue.Clear();
-                        __instance.addMarriageDialogue("MarriageDialogue", randomAfternoonDialogueRewrite(__instance.Name, daySaveRandom, (daySaveRandom.NextDouble() < (double)heartLevelForNpc / 11.0 ? "Neutral_" : "Bad_"), false));
-                        break;
+                        startsKey = acceptableKeys[i];
+                        found = true;
                     }
-                    if (daySaveRandom.NextDouble() < 0.05)
-                    {
-                        __instance.currentMarriageDialogue.Clear();
-                        __instance.addMarriageDialogue("MarriageDialogue", randomAfternoonDialogueRewrite(__instance.Name, daySaveRandom, $"{Game1.currentSeason}_{__instance.Name}"));
-                        break;
-                    }
-                    if (heartLevelForNpc >= 10 && daySaveRandom.NextBool() || heartLevelForNpc >= 11 && daySaveRandom.NextDouble() < 0.75 || heartLevelForNpc >= 12 && daySaveRandom.NextDouble() < 0.95)
-                    {
-                        __instance.currentMarriageDialogue.Clear();
-                        __instance.addMarriageDialogue("MarriageDialogue", randomAfternoonDialogueRewrite(__instance.Name, daySaveRandom, "Good_", false));
-                    }
-                    __instance.currentMarriageDialogue.Clear();
-                    __instance.addMarriageDialogue("MarriageDialogue", randomAfternoonDialogueRewrite(__instance.Name, daySaveRandom, "Neutral_", false));
+                    i++;
+                }
+
+                //If the startsKey was not updated according to earlier matches
+                if (!found || startsKey == "")
+                {
+                    EntryMonitor.Log("No dialogue matches detected!");
                     break;
-                case Farm _:
-                    __instance.currentMarriageDialogue.Clear();
-                    if (daySaveRandom.NextDouble() < 0.2)
-                    {
-                        __instance.addMarriageDialogue("MarriageDialogue", randomAfternoonDialogueRewrite(__instance.Name, daySaveRandom, $"Outdoor_{__instance.Name}", false));
-                        break;
-                    }
-                    __instance.addMarriageDialogue("MarriageDialogue", randomAfternoonDialogueRewrite(__instance.Name, daySaveRandom, "Outdoor_"));
-                    break;
-            }
-            return false;
-        }
-        catch (Exception e)
-        {
-            YOOO.Log("no dialogue for you :( .. \n{e}", LogLevel.Error);
-            return true;
-        }
-        
+                }
 
-    }
-    public static bool setSpouseRoomMarriageDialogue_prefix(NPC __instance)
-    {
-        YOOO.Log("setting spouse room dialogue!!");
-        try
-        {
-            Random random = Utility.CreateDaySaveRandom();
-            __instance.currentMarriageDialogue.Clear();
-            __instance.addMarriageDialogue("MarriageDialogue", randomAfternoonDialogueRewrite(__instance.Name, random, "spouseRoom_"));
-            return false;
-        }
-        catch (Exception e)
-        {
-            YOOO.Log("no spouse room dialogue for you :( .. \n{e}", LogLevel.Error);
-            return true;
-        }
-    }
-    /*
-     * NEXT ITERATION
-     * 
-    public static IEnumerable<CodeInstruction> MarriageDuties_Transpile(IEnumerable<CodeInstruction> instructions)
-    {
+                //Copied from addMarriageDialogue from the original since that one doesn't run
+                __instance.shouldSayMarriageDialogue.Value = true;
+                __instance.currentMarriageDialogue.Add(new MarriageDialogueReference(dialogue_file, pickRandomDialogue(__instance.Name, dialogueRandom, startsKey, nameToggleBool), gendered, substitutions));
+                break;
 
+            case "Strings\\StringsFromCSFiles": // Look into MarriageDuties for this
+                EntryMonitor.Log("MarriageDuties detected!");
+                break;
+            default: EntryMonitor.Log($"No dialogue file detected! See {dialogue_file}!"); break;
+        }
+            
     }
-    */
     
     /// <summary> Rewrite of the dialogue thing in 1.6.15 </summary>
-    /// <param name="npc"> Current NPC to be able to use their functions. </param>
+    /// <param name="npcName"> Current NPC name. </param>
     /// <param name="daySaveRandom_Game"> The random function already created in the function to use. </param>
     /// <param name="prefixDialogue"> The prefix of dialogue to match for. </param>
     /// <param name="generalNameToggle"> Whether to look for the NPC's name in the general marriage XNB or not. </param>
-    public static string randomAfternoonDialogueRewrite(string npcName, Random daySaveRandom_Game, string prefixDialogue, bool generalNameToggle = true)
+    public static string pickRandomDialogue(string npcName, Random daySaveRandom_Game, string prefixDialogue, bool generalNameToggle)
     {
+        List<string> listOfAllOtherNPCs = initializeNPCNameList(Game1.content, npcName, prefixDialogue);
         try
         {
+            /*
+             * Want to rewrite this to handle the two docs separately and then merge their keys and take distinct. It works as is but it's hard to manipulate based on the doc the key was found in.
+             */
+
             // Load dictionary and only take its keys
             string asset1 = "Characters\\Dialogue\\MarriageDialogue";
             string asset2 = asset1 + npcName;
@@ -154,28 +112,28 @@ internal class ModEntry : Mod
 
             // Get all unique keys from both files
             dialogueDictionaryAll.AddRange(dDGeneral);
-            dialogueDictionaryAll.Select(g => g.First()).ToList();
+            List<string> dialogueDictionary = dialogueDictionaryAll.Distinct().ToList();
 
             // Find the keys that match our queries
             List<string> matchedKeys = new List<string>();
 
-            for (int i = 0; i < dialogueDictionaryAll.Count; i++)
+            for (int i = 0; i < dialogueDictionary.Count; i++)
             {
-                if (dialogueDictionaryAll[i].Contains(prefixDialogue))
+                if (dialogueDictionary[i].Contains(prefixDialogue) && !listOfAllOtherNPCs.Any(dialogueDictionary[i].Contains))
                 {
-                    if (!generalNameToggle || dialogueDictionaryAll[i].Contains(npcName))
+                    if (!generalNameToggle || dialogueDictionary[i].Contains(npcName))
                     {
-                        matchedKeys.Add(dialogueDictionaryAll[i]);
+                        matchedKeys.Add(dialogueDictionary[i]);
                     }
                 }
             }
 
             // For debugging purposes
-            YOOO.Log("looked for keys matching the prefix: " + prefixDialogue);
-            YOOO.Log("found " + matchedKeys.Count + " keys!!!");
+            EntryMonitor.Log("Looked for keys matching the prefix: " + prefixDialogue);
+            EntryMonitor.Log("Found " + matchedKeys.Count + " keys!");
             for (int i = 0; i < matchedKeys.Count; i++)
             {
-                YOOO.Log(matchedKeys[i].ToString());
+                EntryMonitor.Log(matchedKeys[i].ToString());
             }
 
             // Return a key from our matched list
@@ -183,19 +141,60 @@ internal class ModEntry : Mod
         }
         catch (Exception ex)
         {
-            YOOO.Log($"error in the main func, oopsies!! .. \n{ex}", LogLevel.Error);
+            EntryMonitor.Log($"Could not find a matching key! \n{ex}", LogLevel.Error);
             return "patio_"+npcName;
         }
     }
-    /*
-     * NEXT ITERATION
-     * 
-    /// <summary> Rewrite of the dialogue stuff when the game tries to look for something in the StringsFromCSFiles. Look above for the param definitions of those that are named the same. </summary>
-    /// <param name="fallbackDialogueFile"> The StringsToCSFile to look at when the function can't find valid dialogue in the marriage files. </param>
-    /// <param name="fallbackDialogueLocation"> The line to look at for the dialogue to load. </param>
-    public void stringSpecificDialogueRewrite(NPC npc, Random daySaveRandom_Game, string prefixDialogue, string fallbackDialogueFile, string fallbackDialogueLocation, bool generalNameToggle = true)
+    public static List<string> initializeNPCNameList(LocalizedContentManager content, string exlude, string key)
     {
+        /*
+         * Want to rewrite this to have all NPC names and probably include multiple in one entry so that more than one can have an entry in it.
+         * Maybe filter out all NPCs (just general dialogue) and then the rest filter by what has the NPC name in it
+         */
 
+        try
+        {
+            EntryMonitor.Log("Beginning sort!");
+            // Getting the files in the marriage directory
+            string rootLocation = content.GetContentRoot();
+            EntryMonitor.Log("Content root retrieved!");
+            string dialogueDirectory = "Characters\\Dialogue";
+            EntryMonitor.Log("Dialogue directory set!");
+            string[] marriageFiles = Directory.GetFiles(rootLocation + "\\" + dialogueDirectory);
+            EntryMonitor.Log("Got NPC files!");
+
+            // Sorting through and parsing them
+            List<string> fileNames = new List<string>();
+            for (int i = 0; i < marriageFiles.Length; i++)
+            {
+                if (marriageFiles[i].Contains("MarriageDialogue"))
+                {
+                    string path = Path.GetFileName(marriageFiles[i]);
+                    string marriageFileName = path.Split(new string[] { "." }, StringSplitOptions.None).First();
+                    string npcName = marriageFileName.Split(new string[] { "MarriageDialogue" }, StringSplitOptions.None).Last();
+                    if (npcName != exlude && npcName != "")
+                    {
+                        fileNames.Add(npcName);
+                    }
+                }
+            }
+            List<string> otherNPCs = fileNames.Distinct().ToList();
+            EntryMonitor.Log("Parsed NPC files!");
+
+            // Check list of NPCs (debug)
+            EntryMonitor.Log($"NPC names found (exluded {exlude}):");
+            for (int i = 0; i < otherNPCs.Count; i++)
+            {
+                EntryMonitor.Log("->"+otherNPCs[i]+"<-");
+            }
+
+            return otherNPCs;
+
+        }
+        catch
+        {
+            EntryMonitor.Log("Could not get NPC names!");
+            return new List<string>();
+        }
     }
-    */
 }
