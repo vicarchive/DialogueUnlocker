@@ -1,7 +1,7 @@
 {
     "Name": "Dialogue Unlocker",
     "Author": "vicarchive",
-    "Version": "1.1.1", /* Transpile begun */
+    "Version": "1.2.0", /* Postfix completed */
     "Description": "Unlocks limits on marriage dialogues.",
     "UniqueID": "vicarchive.DialogueUnlocker",
     "EntryDll": "MarriageDialogueUnlocker.dll",

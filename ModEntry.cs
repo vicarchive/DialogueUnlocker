@@ -4,6 +4,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Diagnostics;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Netcode;
@@ -34,148 +35,103 @@ internal class ModEntry : Mod
         Harmony harmony = new(ModManifest.UniqueID);
         Initialize(Monitor);
 
-        // PREFIX
-        /* The main method to patch
-         * The game runs fine with this, but there are a few quirks, notably the "..." after each line that pops up because marriageDuties could not load dialogue.
-         * Indoor_Day also primarily runs from marriageDuties.
-         */
         harmony.Patch(
-            original: AccessTools.Method(typeof(NPC), nameof(NPC.addMarriageDialogue)),
-            prefix: new HarmonyMethod(typeof(ModEntry), nameof(addMarriageDialogue_prefix))
+            original: AccessTools.DeclaredConstructor(typeof(MarriageDialogueReference), new Type[] { typeof(string), typeof(string), typeof(bool), typeof(string[]) }),
+            postfix: new HarmonyMethod(typeof(ModEntry), nameof(marriageDialogueReference_postfix))
         );
-        EntryMonitor.Log("Prefix patch completed!");
-        // TRANSPILERS
-        /* To fix the issues mentioned above
-         * marriageDuties is a HUGE method that I am not going to prefix just to change a few lines. Given that addMarriage takes in the arguments that the MarriageDialogueReference already needs, it's easiler to transpile these to point to addMarriage instead.
-         */
-        harmony.Patch(
-            original: AccessTools.Method(typeof(NPC), nameof(NPC.marriageDuties)),
-            transpiler: new HarmonyMethod(typeof(ModEntry), nameof(marriageDuties_transpiler_1))
-        );
-        EntryMonitor.Log("Transpiler patches completed!");
-        EntryMonitor.Log("All dialogue patches have been applied!");
+        EntryMonitor.Log("MarriageDialogueReference postfix has been applied!");
     }
 
-    /// <summary> Transpiler for MarriageDuties with a few minor changes. </summary>
-    public static IEnumerable<CodeInstruction> marriageDuties_transpiler_1(IEnumerable<CodeInstruction> instructions)
+    /// <summary> Postfix for any MarriageDialogueReference (required for marriage dialogue) </summary>
+    /// <param name="__instance"> The created MarriageDialogueReference to fix. </param>
+    /// The other params are references to the members of the .ctor.
+    private static void marriageDialogueReference_postfix(MarriageDialogueReference __instance, ref NetString ____dialogueKey, ref NetString ____dialogueFile, ref NetBool ____isGendered, ref NetStringList ____substitutions)
     {
-        /*
-         * NetRef<MarriageDialogueReference> marriageDefaultDialogue = this.marriageDefaultDialogue;
-         * num1 = daySaveRandom.Next(5);
-         * MarriageDialogueReference dialogueReference = new MarriageDialogueReference("MarriageDialogue", "Rainy_Day_" + num1.ToString(), false, Array.Empty<string>());
-         * marriageDefaultDialogue.Value = dialogueReference;
-         */
-        
-        CodeMatcher matcher = new(instructions);
-        MethodInfo daySaveRandomMethod = AccessTools.Method(typeof(Random), nameof(Random.Next), new Type[] {typeof(Int32)});
-        MethodInfo toStringMethod = AccessTools.Method(typeof(Int32), nameof(Int32.ToString));
-        MethodInfo concatMethod = AccessTools.Method(typeof(String), nameof(String.Concat), new Type[] { typeof(string), typeof(string) });
+        Random daySaveRandom = Utility.CreateDaySaveRandom(Game1.timeOfDay);
+        List<string> listOfNPCNames = initializeNPCNameList(Game1.content);
+        string spouseName = Game1.player.getSpouse().Name; // This SHOULD work with multiplayer ?? But not with polyamory mods. Might find a different way but this is the most clever I could think of
+        EntryMonitor.Log($"Entered postfix with spouse name {spouseName}, and dialogue file {__instance.DialogueFile} and key {__instance.DialogueKey}!");
 
-        MethodInfo modifyDialogue = AccessTools.Method(typeof(ModEntry), nameof(addMarriageDialogue_prefix));
-
-        matcher.MatchStartForward(
-            new CodeMatch(OpCodes.Ldstr, "MarriageDialogue"),
-            new CodeMatch(OpCodes.Ldstr, "Rainy_Day_"),
-            new CodeMatch(OpCodes.Ldloc_2), //daySaveRandom
-            new CodeMatch(OpCodes.Ldc_I4_5),
-            new CodeMatch(OpCodes.Callvirt, daySaveRandomMethod),
-            new CodeMatch(OpCodes.Stloc_S), //num1
-            new CodeMatch(OpCodes.Ldloca_S), //num1
-            new CodeMatch(OpCodes.Call, toStringMethod),
-            new CodeMatch(OpCodes.Call, concatMethod),
-            new CodeMatch(OpCodes.Ldc_I4_0) // "Rainy_Day_" + num1
-            )
-            .ThrowIfNotMatch($"Could not find entry point for transpiler {nameof(marriageDuties_transpiler_1)}")
-            .Advance(-1)
-            .RemoveInstructions(1)
-            .Advance(11)
-            .RemoveInstructions(2)
-            .Insert(
-                new CodeInstruction(OpCodes.Call, modifyDialogue)
-            );
-        return matcher.InstructionEnumeration();
-    }
-
-    ///public static IEnumerable<CodeInstruction> marriageDuties_transpiler_2(IEnumerable<CodeInstruction> instructions)
-    ///{
-        /*
-         * NetRef<MarriageDialogueReference> marriageDefaultDialogue = this.marriageDefaultDialogue;
-         * num1 = daySaveRandom.Next(5);
-         * MarriageDialogueReference dialogueReference = new MarriageDialogueReference("MarriageDialogue", "Indoor_Day_" + num1.ToString(), false, Array.Empty<string>());
-         * marriageDefaultDialogue.Value = dialogueReference;
-         */
-    ///}
-    ///public static IEnumerable<CodeInstruction> marriageDuties_transpiler_3(IEnumerable<CodeInstruction> instructions)
-    ///{
-        /*
-         * this.currentMarriageDialogue.Add(new MarriageDialogueReference(this.marriageDefaultDialogue.Value.DialogueFile, this.marriageDefaultDialogue.Value.DialogueKey, this.marriageDefaultDialogue.Value.IsGendered, this.marriageDefaultDialogue.Value.Substitutions));
-         */
-
-    /// <summary> The prefix for addMarriageDialogue. Allows more flexibility in marriage dialogues. </summary>
-    /// <param name="__instance"> "this" or the NPC loading the function </param>
-    /// <param name="dialogue_file"> The file to look for for the dialogue key </param>
-    /// <param name="dialogue_key"> The dialogue key to load </param>
-    /// <param name="gendered"> I'm just passing this to the add function </param>
-    /// <param name="substitutions"> Used for endearment terms </param>
-    public static void addMarriageDialogue_prefix(NPC __instance, string dialogue_file, string dialogue_key, bool gendered = false, params string[] substitutions)
-    {
-        Random dialogueRandom = Utility.CreateDaySaveRandom(Game1.timeOfDay);
-
-        switch (dialogue_file)
+        // Since this is the general MarriageDialogueReference, we also account for the vanilla game usage of the StringsFromCSFiles that we'll add variance for here as well.
+        if (__instance.DialogueFile == "Strings\\StringsFromCSFiles")
         {
-            case "MarriageDialogue":
-                EntryMonitor.Log("MarriageDialogue detected!");
+            EntryMonitor.Log("Found Strings!");
 
-                // Transpiler debug
-                EntryMonitor.Log($"I've found: {__instance} | {dialogue_file} | {dialogue_key} | {gendered}");
+            string startsKey = "";
+            /*
+            switch (__instance.DialogueKey)
+            {  // add every use of strings to cs files in here.....
 
-                // Instantiation
-                bool nameToggleBool = dialogue_key.Contains(__instance.Name) && dialogue_key.Contains(Game1.currentSeason); // Season specific dialogue lookup. Otherwise no reason to toggle name search on. And might remove this later I have no idea
-                string startsKey = "";
-                List<string> acceptableKeys = new List<string> { "Rainy_Night", "Rainy_Day", "Indoor_Night", "Indoor_Day", "Outdoor", "Good", "Neutral", "Bad", "OneKid", "TwoKids", $"{Game1.currentSeason}", "spouseRoom", "funLeave", "jobLeave", "funReturn", "jobReturn", "patio" };
+            }
+            */
 
-                // Match with one of the accepted keys above
-                bool found = false;
-                int i = 0;
-                while (!found && i < acceptableKeys.Count)
-                {
-                    if (dialogue_key.StartsWith(acceptableKeys[i]))
-                    {
-                        startsKey = acceptableKeys[i];
-                        found = true;
-                    }
-                    i++;
+            if (startsKey == "")
+            {
+                EntryMonitor.Log($"Could not find a match for {__instance.DialogueKey}!");
+            }
+            else
+            {
+                string chosenKey = pickRandomDialogue(spouseName, daySaveRandom, startsKey, false, __instance.DialogueKey);
+                EntryMonitor.Log($"Changing our key to {chosenKey}!");
+                if (!chosenKey.Contains("NPC") {
+                    ____dialogueFile = new NetString("MarriageDialogue");
+                    ____dialogueKey = new NetString(chosenKey);
                 }
-
-                //If the startsKey was not updated according to earlier matches
-                if (!found || startsKey == "")
-                {
-                    EntryMonitor.Log("No dialogue matches detected!");
-                    break;
-                }
-
-                //Copied from addMarriageDialogue from the original since that one doesn't run
-                __instance.shouldSayMarriageDialogue.Value = true;
-                string chosenKey = pickRandomDialogue(__instance.Name, dialogueRandom, startsKey, nameToggleBool);
-                EntryMonitor.Log("Key has been chosen!");
-                EntryMonitor.Log($"I'm using {__instance.Name}, {dialogue_file}, {chosenKey}, {gendered}, and {substitutions}!");
-                __instance.currentMarriageDialogue.Add(new MarriageDialogueReference(dialogue_file, chosenKey, gendered, substitutions));
-                break;
-
-            case "Strings\\StringsFromCSFiles": // Look into MarriageDuties for this
-                EntryMonitor.Log("MarriageDuties detected!");
-                break;
-            default: EntryMonitor.Log($"No dialogue file detected! See {dialogue_file}!"); break;
+                // Otherwise it's the same key as before and just let the game handle it as is
+            }
+            
         }
+        else if (__instance.DialogueFile == "MarriageDialogue")
+        {
+            EntryMonitor.Log("Found MarriageDialogue!");
+            bool nameToggleBool = __instance.DialogueKey.Contains(spouseName) && __instance.DialogueKey.Contains(Game1.currentSeason); // Season specific dialogue lookup. Otherwise no reason to toggle name search on. And might remove this later I have no idea
+            /* !!!!!!!!!!!!!!!!!!!! also consider stuff named like winter_14_alex, but that takes precedense but needs the date in there */
+
+            string startsKey = "";
+            List<string> acceptableKeys = new List<string> { "Rainy_Night", "Rainy_Day", "Indoor_Night", "Indoor_Day", "Outdoor", "Good", "Neutral", "Bad", "OneKid", "TwoKids", $"{Game1.currentSeason}", "spouseRoom", "funLeave", "jobLeave", "funReturn", "jobReturn", "patio" };
+
+            // Match with one of the accepted keys above
+            bool found = false;
+            int i = 0;
+            while (!found && i < acceptableKeys.Count)
+            {
+                if (__instance.DialogueKey.StartsWith(acceptableKeys[i]))
+                {
+                    startsKey = acceptableKeys[i];
+                    found = true;
+                }
+                i++;
+            }
+
+            //If the startsKey was not updated according to earlier matches
+            if (!found || startsKey == "")
+            {
+                EntryMonitor.Log("No dialogue matches detected!");
+                // And let the game handle it..
+            }
+            else
+            {
+                // Set the dialogue key to whatever we want it to be
+                string chosenKey = pickRandomDialogue(spouseName, daySaveRandom, startsKey, nameToggleBool);
+                EntryMonitor.Log($"Changing current key to {chosenKey}!");
+                ____dialogueKey = new NetString(chosenKey);
+            }
+        }
+        else
+        {
+            EntryMonitor.Log($"Could not classify dialogue file!: {__instance.DialogueFile}");
+            // Do not touch, let the game handle it
+        }
+        
     }
-    
 
     /// <summary> Rewrite of the dialogue thing in 1.6.15 </summary>
-    /// <param name="npcName"> Current NPC name. </param>
-    /// <param name="daySaveRandom_Game"> The random function already created in the function to use. </param>
+    /// <param name="npcName"> Spouse name. </param>
+    /// <param name="daySaveRandom_Game"> Game specific random function. </param>
     /// <param name="prefixDialogue"> The prefix of dialogue to match for. </param>
     /// <param name="generalNameToggle"> Whether to look for the NPC's name in the general marriage XNB or not. </param>
-    public static string pickRandomDialogue(string npcName, Random daySaveRandom_Game, string prefixDialogue, bool generalNameToggle)
+    /// <param name="optional"> Any extra string to include in the list to consider. Used exclusively for Strings\\StringsFromCSFiles. </param>
+    private static string pickRandomDialogue(string npcName, Random daySaveRandom_Game, string prefixDialogue, bool generalNameToggle, string optional = "")
     {
         bool npcNamePresent = false;
         List<string> listOfAllOtherNPCs = initializeNPCNameList(Game1.content);
@@ -236,9 +192,16 @@ internal class ModEntry : Mod
                 }
             }
 
+            List<string> extraString = new List<string>();
+            if (optional != "")
+            {
+                extraString.Add(optional);
+            }
+
             // Get all unique keys from both files
             marriageDialogueSpouseKeys.AddRange(marriageDialogueUniversalKeys);
             marriageDialogueSpouseKeys.AddRange(marriageDialogueUnivSpouseKeys);
+            marriageDialogueSpouseKeys.AddRange(extraString);
             List<string> marriageDialogueKeys = marriageDialogueSpouseKeys.Distinct().ToList();
 
             // For debugging purposes
@@ -259,19 +222,16 @@ internal class ModEntry : Mod
         }
     }
 
-    /// <summary> Initialize a list of all marriable NPCs in the game based on the dialogue files present. </summary>
+    /// <summary> Creates a list of dateable NPCs based on unique marriage dialogue files. </summary>
     /// <param name="content"> The game's content loader. </param>
-    /// <returns> List of all marriable NPCs </returns>
-    public static List<string> initializeNPCNameList(LocalizedContentManager content)
+    /// <returns> List of all dateable NPCs. </returns>
+    private static List<string> initializeNPCNameList(LocalizedContentManager content)
     {
         try
         {
-            EntryMonitor.Log("Beginning file lookup!");
             // Getting the files in the marriage directory
             string rootLocation = content.GetContentRoot();
-            EntryMonitor.Log("Content root retrieved!");
             string dialogueDirectory = "Characters\\Dialogue";
-            EntryMonitor.Log("Dialogue directory set!");
             string[] marriageFiles = Directory.GetFiles(rootLocation + "\\" + dialogueDirectory);
             EntryMonitor.Log("Got NPC files!");
 
@@ -294,12 +254,7 @@ internal class ModEntry : Mod
             EntryMonitor.Log("Parsed NPC files!");
 
             // Check list of NPCs (debug)
-            EntryMonitor.Log($"NPC names found:");
-            for (int i = 0; i < otherNPCs.Count; i++)
-            {
-                EntryMonitor.Log("->"+otherNPCs[i]+"<-");
-            }
-
+            EntryMonitor.Log($"Found {otherNPCs.Count} dateable NPCs!");
             return otherNPCs;
 
         }

@@ -2,14 +2,15 @@
 An SDV 1.6.15 ONLY mod that unlocks marriage dialogues.
 
 ## Warnings!!!!!!
-This issue has, if I'm correct, been fixed in 1.6.16. Do NOT use this mod for 1.6.16!!!!
+This issue has (probably) been fixed in 1.6.16. Do NOT use this mod for 1.6.16!!!!
 I am unsure if this mod works properly for anything below 1.6.15, if there are compatibility issues then update your game.
 
-This mod messes with these functions:
-- addMarriageDialogue (prefixed)
-- marriageDuties (transpiled)
+This mod uses these functions:
+- MarriageDialogueReference (postfixed)
+- Game1.player.getSpouse().Name (referenced for spouse name)
 
 This mod may not compatible with other mods that edit, prefix, or otherwise modify these methods.
+(I tried to make it compatible with Free Love but I can't find another place to reference the speaker, so it will not work with it. Sorry)
 
 ## How to use (in the future)
 Place the mod folder into the "Stardew Valley/Mods" folder.
@@ -42,4 +43,6 @@ Please see the original files or this page (https://stardewvalleywiki.com/Moddin
 | Outdoor | Outdoor_Alex_heehee | Alex line |
 | spouseRoom | spouseRoom_1_HALEY_cool_name_idk | Haley line |
 | spring / summer / fall / winter + spouseName | summer_youcanputanythinghere_emILY | Emily line |
-| spring / summer / fall / winter_currentDate | winter_14_okay_SAM | Sam line |
+| spring / summer / fall / winter_currentDate | winter_14_okay_SAM | Sam line (wip) |
+
+I'll be adding the Strings\\StringsFromCSFiles prefixes in here soon when I begin patching them.
