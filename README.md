@@ -42,7 +42,7 @@ Please see the original files or this page (https://stardewvalleywiki.com/Moddin
 | funReturn / jobReturn | jobReturnPenny | Penny line |
 | Outdoor | Outdoor_Alex_heehee | Alex line |
 | spouseRoom | spouseRoom_1_HALEY_cool_name_idk | Haley line |
-| spring / summer / fall / winter + spouseName | summer_youcanputanythinghere_emILY | Emily line |
+| spring / summer / fall / winter + spouseName | summer_emILY_youcanputanythinghere | Emily line |
 | spring / summer / fall / winter_currentDate | winter_14_okay_SAM | Sam line (wip) |
 
 I'll be adding the Strings\\StringsFromCSFiles prefixes in here soon when I begin patching them.
