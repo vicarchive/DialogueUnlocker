@@ -70,43 +70,43 @@ internal class ModEntry : Mod
                 case string f when f.Contains("4426"):
                 case string g when g.Contains("4431"):
                 case string h when h.Contains("4432"):
-                case string i when i.Contains("4433"): startsKey = "Moody"; break;
-                case string a when a.Contains("4422"): startsKey = "MoodyGendered"; break; // Same as previous but IsGendered is set to True
+                case string i when i.Contains("4433"): startsKey = "Displeased"; break;
+                case string a when a.Contains("4422"): startsKey = "Displeased_Gendered"; break; // Same as previous but IsGendered is set to True
                 case string a when a.Contains("4427"):
-                case string b when b.Contains("4429"): startsKey = "MoodyFem"; break; // Female specific dialogue. Adding this into a husband's dialogue sheet will not do anything
+                case string b when b.Contains("4429"): startsKey = "Displeased_Fem"; break; // Female specific dialogue. Adding this into a husband's dialogue sheet will not do anything
                                                                                       // Same sex couples
-                case string a when a.Contains("4439"): startsKey = "AdoptionObstacle"; break; // Expecting to adopt a child, obstacle found
-                case string a when a.Contains("4440"): startsKey = "AdoptionName"; break; // Expecting to adopt a child, uses farmer's name
-                case string a when a.Contains("4441"): startsKey = "AdoptionEndearment"; break; // Expecting to adopt a child, uses endearment term
+                case string a when a.Contains("4439"): startsKey = "Adoption_Obstacle"; break; // Expecting to adopt a child, obstacle found
+                case string a when a.Contains("4440"): startsKey = "Adoption_Name"; break; // Expecting to adopt a child, uses farmer's name
+                case string a when a.Contains("4441"): startsKey = "Adoption_Endearment"; break; // Expecting to adopt a child, uses endearment term
                                                                                                 // Opposite sex couples - female spouses
-                case string a when a.Contains("4442"): startsKey = "PregnancyObstacle"; break; // Pregnant, obstacle found
-                case string a when a.Contains("4445"): startsKey = "PregnancyEndearment"; break; // Pregnant, uses endearment term
-                case string a when a.Contains("4444"): startsKey = "PregnancyName"; break; // Pregnant, uses farmer's name
+                case string a when a.Contains("4442"): startsKey = "Pregnancy_Obstacle"; break; // Pregnant, obstacle found
+                case string a when a.Contains("4445"): startsKey = "Pregnancy_Endearment"; break; // Pregnant, uses endearment term
+                case string a when a.Contains("4444"): startsKey = "Pregnancy_Name"; break; // Pregnant, uses farmer's name
                                                                                            // Opposite sex couples - male spouses
-                case string a when a.Contains("4446"): startsKey = "ExpectingObstacle"; break; // Expecting, obstacle found, gendered
-                case string a when a.Contains("4448"): startsKey = "ExpectingEndearment"; break; // Expecting, uses endearment term
-                case string a when a.Contains("4447"): startsKey = "ExpectingName"; break; // Expecting, uses farmer's name, gendered
+                case string a when a.Contains("4446"): startsKey = "Expecting_Obstacle"; break; // Expecting, obstacle found, gendered
+                case string a when a.Contains("4448"): startsKey = "Expecting_Endearment"; break; // Expecting, uses endearment term
+                case string a when a.Contains("4447"): startsKey = "Expecting_Name"; break; // Expecting, uses farmer's name, gendered
                                                                                            // Parent
-                case string a when a.Contains("4449"): startsKey = "ParentOneObstacle"; break; // Parent of one child, found obstacle, gendered
-                case string a when a.Contains("4452"): startsKey = "ParentTwoObstacle"; break; // Parent of two children, found obstacle, gendered
+                case string a when a.Contains("4449"): startsKey = "OneKid_Obstacle"; break; // Parent of one child, found obstacle, gendered
+                case string a when a.Contains("4452"): startsKey = "TwoKids_Obstacle"; break; // Parent of two children, found obstacle, gendered
 
-                case string a when a.Contains("4455"): startsKey = "BreakfastNevermind"; break; // Obstacle found and previous marriage dialogue was for breakfast, gendered
+                case string a when a.Contains("4455"): startsKey = "Breakfast_Nevermind"; break; // Obstacle found and previous marriage dialogue was for breakfast, gendered
                 case string a when a.Contains("4462"): startsKey = "WateredCrops"; break; // Spouse watered crops, gendered
-                case string a when a.Contains("MultiplePetBowls_watered"): startsKey = "FilledMultiplePetBowls"; break; // Spouse watered multiple pet bowls
-                case string a when a.Contains("4463"): startsKey = "FilledOnePetBowl"; break; // Spouse filled one pet bowl
-                case string a when a.Contains("4465"): startsKey = "GreetingWorkDone"; break; //Not sure, uses endearment
-                case string a when a.Contains("4466"): startsKey = "GreetingNoWork"; break; //Also not sure, uses endearment
+                case string a when a.Contains("MultiplePetBowls_watered"): startsKey = "PetBowl_Multiple"; break; // Spouse watered multiple pet bowls
+                case string a when a.Contains("4463"): startsKey = "PetBowl_One"; break; // Spouse filled one pet bowl
+                case string a when a.Contains("4465"): startsKey = "Greeting_WorkDone"; break; //Not sure, uses endearment
+                case string a when a.Contains("4466"): startsKey = "Greeting_NoWork"; break; //Also not sure, uses endearment
                 case string a when a.Contains("4470"): startsKey = "Sprinkler"; break; // Spouse wanted to water crops, but player has sprinklers, gendered
                 case string a when a.Contains("4474"): startsKey = "FeedAnimals"; break; // Spouse fed the animals, gendered
                 case string a when a.Contains("4481"): startsKey = "RepairFences"; break; // Spouse repaired fences, gendered
-                case string a when a.Contains("4486"): startsKey = "IntroduceFurniture"; break; // Spouse got some furniture, first line, uses endearment lower
+                case string a when a.Contains("4486"): startsKey = "Furniture_Introduce"; break; // Spouse got some furniture, first line, uses endearment lower
                 case string a when a.Contains("4488"): // gendered
-                case string b when b.Contains("4489"): startsKey = "ShowFurniture"; break; // Spouse got some furniture, second line
-                case string a when a.Contains("4490"): startsKey = "FurnitureObstacle"; break; // Spouse wanted to redecorate, but was unable to
-                case string a when a.Contains("4496"): startsKey = "ChangeWallpaper"; break; // Spouse changed the wallpaper
-                case string a when a.Contains("4497"): startsKey = "ChangeFlooring"; break; // Spouse changed the flooring
-                case string a when a.Contains("4498"): startsKey = "FurnitureRemnisce"; break; //Unsure, this seems to be tied to a furniture item valued at 13 when its raining?, gendered
-                case string a when a.Contains("4499"): startsKey = "Remnisce"; break; //Also unsure, as above is tied to low hearts during a rainy day
+                case string b when b.Contains("4489"): startsKey = "Furniture_Show"; break; // Spouse got some furniture, second line
+                case string a when a.Contains("4490"): startsKey = "Furniture_Obstacle"; break; // Spouse wanted to redecorate, but was unable to
+                case string a when a.Contains("4496"): startsKey = "Change_Wallpaper"; break; // Spouse changed the wallpaper
+                case string a when a.Contains("4497"): startsKey = "Change_Flooring"; break; // Spouse changed the flooring
+                case string a when a.Contains("4498"): startsKey = "Furniture_Reminisce"; break; //Unsure, this seems to be tied to a furniture item valued at 13 when its raining?, gendered
+                case string a when a.Contains("4499"): startsKey = "Reminisce"; break; //Also unsure, as above is tied to low hearts during a rainy day
                                                                                       // NPC:cs:4500 is called via regular SDV dialogue, so changing it here won't do anything
             }
 
