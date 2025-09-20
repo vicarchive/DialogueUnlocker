@@ -12,7 +12,7 @@ This mod uses these functions:
 This mod may not compatible with other mods that edit, prefix, or otherwise modify these methods.
 (I tried to make it compatible with Free Love but I can't find another place to reference the speaker, so it will not work with it. Sorry)
 
-## How to use (in the future)
+## How to use
 Place the mod folder into the "Stardew Valley/Mods" folder.
 Any entries added via "EditData" with Content Patcher should now be recognized by the game under specific circumstances, listed in the table below.
 
@@ -84,9 +84,12 @@ StringsFromCSFiles (new keys)
 | Furniture_Reminisce**** | Unsure |
 | Reminisce**** | Unsure |
 
-* Yes, it is lowercase
+\* Yes, it is lowercase
+
 ** Penny, Harvey, and Maru use jobLeave/ jobReturn. The others use funLeave/ funReturn
+
 *** Overrides other dialogue options
+
 **** May be unused
 
 ## Credits and Resources
@@ -95,7 +98,11 @@ Big BIG thank you to the SDV Discord modding channel, and especially to chu√e 
 Resources used:
 Visual Studio Community 2022 - https://visualstudio.microsoft.com/vs/community/
 + Setup for SDV modding instructions - https://stardewvalleywiki.com/Modding:Modder_Guide/Get_Started#Create_the_project
+
 Decompiled game code via dotPeek (you'll need a copy of the game to decompile, obviously) - https://www.jetbrains.com/decompiler/
+
 Dialogue documentation - https://stardewvalleywiki.com/Modding:Dialogue
+
 SDV specific Harmony patching examples - https://stardewmodding.wiki.gg/wiki/Tutorial:_Harmony_Patching
+
 Harmony patching docs - https://harmony.pardeike.net/articles/patching.html
