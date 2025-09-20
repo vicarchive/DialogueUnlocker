@@ -1,10 +1,10 @@
 {
     "Name": "Dialogue Unlocker",
     "Author": "vicarchive",
-    "Version": "1.2.0", /* Postfix completed */
+    "Version": "1.2.2", /* Filter through duplicate looking keys added + Readme update */
     "Description": "Unlocks limits on marriage dialogues.",
     "UniqueID": "vicarchive.DialogueUnlocker",
     "EntryDll": "MarriageDialogueUnlocker.dll",
     "MinimumAPIVersion": "4.0.0",
-    "UpdateKeys": []
+    "UpdateKeys": [ "Nexus:37749" ]
 }

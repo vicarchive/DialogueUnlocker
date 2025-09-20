@@ -1,0 +1,37 @@
+/*
+
+  An example document with entry key examples. This is assuming you already have a content.json in the mod folder that uses FromFile to
+  load in this json. Consider using i18n (may make an example doc, but other mods with dialogue already use this method, so they have better examples).
+
+  This json should NOT be in the MarriageDialogueUnlocker folder, as it will not load. Make a new folder for your mod.
+
+*/
+
+// Make sure you know which entries are taken by the vanilla dialogue before adding new ones.
+// Adding new entries without the mod installed will not affect the vanilla game.
+{
+  "Changes": [
+    {
+      // Spouse specific file
+      "LogName": "Extra_Marriage_Dialogue_Example",
+      "Action": "EditData",
+      "Target": "Characters/Dialogue/MarriageDialogueAlex",
+      "Entries": {
+        "patio_tired": "pretend i wrote something really lifechanging in here", // Will only show up for Alex, since it is in his marriage dialogue file
+        "summer_13": "my imagination is limited to a blank canvas", // Will also only show up for Alex
+        "OneKid_Obstacle_Alex": "i work better in csp" // Adding names isn't necessary when adding entries into specific spouse files
+      }
+    },
+    {
+      // General file
+      "LogName": "Extra_Marriage_Dialogue_Example_2",
+      "Action": "EditData",
+      "Target": "Characters/Dialogue/MarriageDialogue",
+      "Entries": {
+        "patio_Alex_exhausted": "ughueiwbfiuew", // This will only be found for Alex
+        "summer_18_DialogueUnlockerExample": "deikfw", // All spouses will find this entry on Summer 18
+        "WateredCrops_Alex_Sam": "efbeuiw" // Both Alex and Sam will find this entry
+      }
+    }
+  ]
+}

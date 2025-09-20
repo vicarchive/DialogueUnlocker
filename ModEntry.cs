@@ -70,10 +70,10 @@ internal class ModEntry : Mod
                 case string f when f.Contains("4426"):
                 case string g when g.Contains("4431"):
                 case string h when h.Contains("4432"):
-                case string i when i.Contains("4433"): startsKey = "Displeased"; break;
-                case string a when a.Contains("4422"): startsKey = "Displeased_Gendered"; break; // Same as previous but IsGendered is set to True
+                case string i when i.Contains("4433"): startsKey = "displeasedGeneral"; break;
+                case string a when a.Contains("4422"): startsKey = "displeasedGendered"; break; // Same as previous but IsGendered is set to True
                 case string a when a.Contains("4427"):
-                case string b when b.Contains("4429"): startsKey = "Displeased_Fem"; break; // Female specific dialogue. Adding this into a husband's dialogue sheet will not do anything
+                case string b when b.Contains("4429"): startsKey = "displeasedFem"; break; // Female specific dialogue. Adding this into a husband's dialogue sheet will not do anything
                                                                                       // Same sex couples
                 case string a when a.Contains("4439"): startsKey = "Adoption_Obstacle"; break; // Expecting to adopt a child, obstacle found
                 case string a when a.Contains("4440"): startsKey = "Adoption_Name"; break; // Expecting to adopt a child, uses farmer's name
@@ -87,8 +87,8 @@ internal class ModEntry : Mod
                 case string a when a.Contains("4448"): startsKey = "Expecting_Endearment"; break; // Expecting, uses endearment term
                 case string a when a.Contains("4447"): startsKey = "Expecting_Name"; break; // Expecting, uses farmer's name, gendered
                                                                                            // Parent
-                case string a when a.Contains("4449"): startsKey = "OneKid_Obstacle"; break; // Parent of one child, found obstacle, gendered
-                case string a when a.Contains("4452"): startsKey = "TwoKids_Obstacle"; break; // Parent of two children, found obstacle, gendered
+                case string a when a.Contains("4449"): startsKey = "ParentObstacle_One"; break; // Parent of one child, found obstacle, gendered
+                case string a when a.Contains("4452"): startsKey = "ParentObstacle_Two"; break; // Parent of two children, found obstacle, gendered
 
                 case string a when a.Contains("4455"): startsKey = "Breakfast_Nevermind"; break; // Obstacle found and previous marriage dialogue was for breakfast, gendered
                 case string a when a.Contains("4462"): startsKey = "WateredCrops"; break; // Spouse watered crops, gendered
