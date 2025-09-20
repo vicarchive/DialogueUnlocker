@@ -18,6 +18,7 @@ Any entries added via "EditData" with Content Patcher should now be recognized b
 
 ## Releases
 Releases will be on Nexus Mods here: https://www.nexusmods.com/stardewvalley/mods/37749.
+They'll also be available on the releases tab.
 
 ## List of valid dialogue key prefixes
 You may add these lines into any of these two files, the mod will parse through both fine.
